@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: tableau2pbi-api
+    runtime: python
+    plan: free
+    buildCommand: "cd t2pbi_workbench/backend && pip install -r requirements.txt"
+    startCommand: "cd t2pbi_workbench/backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: T2PBI_WORKSPACE
+        value: "/tmp/t2pbi_runtime/workspace"
+      - key: MAX_UPLOAD_MB
+        value: "500"
+      - key: CORS_ORIGIN_REGEX
+        value: 'https?://(localhost|127\.0\.0\.1):\d+|https://[a-zA-Z0-9-]+\.onrender\.com'
+
+  - type: web
+    name: tableau2pbi-ui
+    runtime: static
+    buildCommand: "cd t2pbi_workbench/frontend && npm install --no-audit --no-fund && npm run build"
+    staticPublishPath: "t2pbi_workbench/frontend/dist"
+    envVars:
+      - key: NODE_VERSION
+        value: "20.19.0"
+      - key: VITE_API_BASE_URL
+        value: "https://tableau2pbi-api.onrender.com"
+    routes:
+      - type: rewrite
+        source: "/*"
+        destination: "/index.html"
